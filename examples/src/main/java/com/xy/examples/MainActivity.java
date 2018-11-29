@@ -48,6 +48,8 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    String downloadUrl = "http://www.voidtools.com/Everything-1.4.1.895.x64-Setup.exe";
+
     public void download(View view) {
         DownloadManager.getInstance().setSavePath("xyDownload").download(downloadUrl, new DownLoadObserver() {
             int prePregress;
@@ -71,6 +73,5 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    String downloadUrl = "http://www.voidtools.com/Everything-1.4.1.895.x64-Setup.exe";
 
 }
