@@ -60,3 +60,34 @@
     }
 
 ```
+
+
+> 需要的配置
+
+* 在项目root gradle
+```gradle
+	allprojects {
+		repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
+```
+
+* 在module gradle
+```gradle
+	dependencies {
+	        implementation 'com.github.xyAugust:SimpleTools:Tag'
+	}
+```
+
+*注意* 使用权限申请的工具  可能还需要如下配置
+```gradle
+	android {
+            ...
+            compileOptions {
+                sourceCompatibility JavaVersion.VERSION_1_8
+                targetCompatibility JavaVersion.VERSION_1_8
+            }
+    }
+```
