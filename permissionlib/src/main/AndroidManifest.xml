@@ -1,0 +1,10 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.xy.permissionlib">
+
+    <application>
+        <activity
+            android:name="com.xy.permissionlib.PermissionActivity"
+            android:configChanges="orientation|keyboardHidden"
+            android:theme="@style/CustomTheme_Dialog" />
+    </application>
+</manifest>
