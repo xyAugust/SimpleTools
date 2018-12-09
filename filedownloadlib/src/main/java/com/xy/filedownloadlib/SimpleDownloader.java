@@ -187,6 +187,9 @@ public class SimpleDownloader {
                     listener.onComplete(downloadInfo);
                     break;
                 case DownloadInfo.STOP:
+                    if (downloadInfo.getState() == DownloadInfo.CANCLE){
+                        new File(downloadInfo.getSavePath()).delete();
+                    }
                     listener.onStop(downloadInfo, downloadInfo.getError());
                     break;
 
