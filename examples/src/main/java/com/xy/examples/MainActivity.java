@@ -20,6 +20,7 @@ import java.io.File;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "examplesMain";
     private ProgressBar progressBar;
+    private SimpleDownloader simpleDownloader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
     String downloadUrl = "http://gdown.baidu.com/data/wisegame/617ea76d7dd3a0ea/jinritoutiao_701.apk";
 
     public void download(View view) {
-        SimpleDownloader simpleDownloader = new SimpleDownloader();
+        simpleDownloader = new SimpleDownloader();
         String fileName = simpleDownloader.getFileName(downloadUrl);
         String savePath = Environment.getExternalStorageDirectory().toString() + File.separator + fileName;
 
@@ -91,5 +92,16 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    public void pause(View view) {
+        if (simpleDownloader != null) {
+            simpleDownloader.pause();
+        }
+    }
+
+    public void cancel(View view) {
+        if (simpleDownloader != null) {
+            simpleDownloader.cancle();
+        }
+    }
 
 }
