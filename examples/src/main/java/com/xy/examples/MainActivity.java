@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         progressBar = findViewById(R.id.progressBar);
+        simpleDownloader = new SimpleDownloader();
         permission();
     }
 
@@ -56,7 +57,6 @@ public class MainActivity extends AppCompatActivity {
     String downloadUrl = "http://gdown.baidu.com/data/wisegame/617ea76d7dd3a0ea/jinritoutiao_701.apk";
 
     public void download(View view) {
-        simpleDownloader = new SimpleDownloader();
         String fileName = simpleDownloader.getFileName(downloadUrl);
         String savePath = Environment.getExternalStorageDirectory().toString() + File.separator + fileName;
 

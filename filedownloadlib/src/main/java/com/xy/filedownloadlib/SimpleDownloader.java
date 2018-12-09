@@ -3,6 +3,7 @@ package com.xy.filedownloadlib;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -73,39 +74,41 @@ public class SimpleDownloader {
         return downloadInfo;
     }
 
-    public SimpleDownloader setListener(SimpleDownloadListener listener) {
-        this.listener = listener;
-        return this;
-    }
-
-    public SimpleDownloader createTask(String url, String savePath, long fileLength) {
+    private SimpleDownloader createTask(String url, String savePath, long fileLength) {
         downloadInfo = new DownloadInfo(url);
         downloadInfo.setSavePath(savePath);
         downloadInfo.setTotalLength(fileLength);
         return this;
     }
 
-    public SimpleDownloader createTask(String url, String savePath) {
-        return createTask(url, savePath, -1);
+    public SimpleDownloader setListener(SimpleDownloadListener listener) {
+        this.listener = listener;
+        return this;
     }
 
-    public void download(String url, String savePath, SimpleDownloadListener listener){
-        createTask(url, savePath).setListener(listener).download();
+    public void download(String url, String savePath, SimpleDownloadListener listener) {
+        download(url, savePath, -1, listener);
     }
 
-    public void download() {
-        final String downloadUrl = downloadInfo.getUrl();
-        DownloadInfo info = loaderMap.get(downloadUrl);
+    public void download(String url, String savePath, long fileLength, SimpleDownloadListener listener) {
+        DownloadInfo info = loaderMap.get(url);
         if (info != null) {
+            Log.i(TAG, "download: " + info.getState());
             if (info.getState() == DownloadInfo.START || info.getState()
                     == DownloadInfo.LOADING)
                 return;
         }
+        createTask(url, savePath, fileLength).setListener(listener).download();
+    }
+
+    public void download() {
+
         THREAD_POOL_EXECUTOR.execute(new Runnable() {
             @Override
             public void run() {
                 InputStream is = null;
                 FileOutputStream fileOutputStream = null;
+                String downloadUrl = downloadInfo.getUrl();
                 try {
                     SimpleDownloader.this.downloadInfo.setState(DownloadInfo.START);      // 开始
                     post(DownloadInfo.START, SimpleDownloader.this.downloadInfo);
@@ -156,7 +159,7 @@ public class SimpleDownloader {
                     loaderMap.remove(downloadUrl);
                 } catch (Exception e) {
                     e.printStackTrace();            //  出错
-                    if (downloadInfo.getState() == DownloadInfo.CANCLE){
+                    if (downloadInfo.getState() == DownloadInfo.CANCLE) {
                         new File(downloadInfo.getSavePath()).delete();
                     }
                     loaderMap.remove(downloadUrl);
@@ -179,6 +182,9 @@ public class SimpleDownloader {
     Handler.Callback callback = new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
+            if (listener == null) {
+                return true;
+            }
             DownloadInfo downloadInfo = (DownloadInfo) msg.obj;
             switch (msg.what) {
                 case DownloadInfo.START:

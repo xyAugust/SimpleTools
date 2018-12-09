@@ -1,12 +1,12 @@
 package com.xy.filedownloadlib;
 
 public class DownloadInfo {
-    public static final int START = 963;
-    public static final int LOADING = 853;
-    public static final int STOP = 725;
-    public static final int COMPLETE = 391;
-    public static final int CANCLE = 559;
-    public static final int PAUSE = 772;
+    public static final int START = 0x01;
+    public static final int LOADING = 0x02;
+    public static final int STOP = 0x03;
+    public static final int COMPLETE = 0x04;
+    public static final int CANCLE = 0x21;
+    public static final int PAUSE = 0x22;
 
     public static final long TOTAL_ERROR = -1;//获取文件大小失败
     private String url;
