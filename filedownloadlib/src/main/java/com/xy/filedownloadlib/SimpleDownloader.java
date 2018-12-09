@@ -138,9 +138,10 @@ public class SimpleDownloader {
                     int len;
                     while ((len = is.read(buffer)) != -1) {
                         if (SimpleDownloader.this.downloadInfo.getState() == DownloadInfo.CANCLE) {
-                            SimpleDownloader.this.downloadInfo.setError(new RuntimeException("cancle task"));
+                            RuntimeException cancle_task = new RuntimeException("cancle task");
+                            SimpleDownloader.this.downloadInfo.setError(cancle_task);
                             loaderMap.remove(downloadUrl);
-                            return;
+                            throw new RuntimeException(cancle_task);
                         }
                         fileOutputStream.write(buffer, 0, len);
                         downloadLength += len;
@@ -155,6 +156,9 @@ public class SimpleDownloader {
                     loaderMap.remove(downloadUrl);
                 } catch (Exception e) {
                     e.printStackTrace();            //  出错
+                    if (downloadInfo.getState() == DownloadInfo.CANCLE){
+                        new File(downloadInfo.getSavePath()).delete();
+                    }
                     loaderMap.remove(downloadUrl);
                     SimpleDownloader.this.downloadInfo.setError(e);
                     post(DownloadInfo.STOP, SimpleDownloader.this.downloadInfo);
@@ -187,9 +191,6 @@ public class SimpleDownloader {
                     listener.onComplete(downloadInfo);
                     break;
                 case DownloadInfo.STOP:
-                    if (downloadInfo.getState() == DownloadInfo.CANCLE){
-                        new File(downloadInfo.getSavePath()).delete();
-                    }
                     listener.onStop(downloadInfo, downloadInfo.getError());
                     break;
 
