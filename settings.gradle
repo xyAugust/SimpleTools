@@ -1,1 +1,1 @@
-include ':app', ':filedownloadlib', ':permissionlib', ':examples'
+include  ':filedownloadlib', ':permissionlib', ':examples'

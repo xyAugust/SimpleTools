@@ -1,12 +1,38 @@
 package com.xy.filedownloadlib;
 
 public class DownloadInfo {
+    public static final int START = 963;
+    public static final int LOADING = 853;
+    public static final int STOP = 725;
+    public static final int COMPLETE = 391;
+    public static final int CANCLE = 559;
+    public static final int PAUSE = 772;
+
     public static final long TOTAL_ERROR = -1;//获取文件大小失败
     private String url;
-    private long total;
-    private long progress;
+    private long totalLength;
+    private long sofarBytes;
     private String fileName;
+    private String fileMd5;
     private String savePath;
+    private int state;
+    private Throwable error;
+
+    public int getState() {
+        return state;
+    }
+
+    public void setState(int state) {
+        this.state = state;
+    }
+
+    public Throwable getError() {
+        return error;
+    }
+
+    public void setError(Throwable error) {
+        this.error = error;
+    }
 
     public DownloadInfo(String url) {
         this.url = url;
@@ -24,20 +50,20 @@ public class DownloadInfo {
         this.fileName = fileName;
     }
 
-    public long getTotal() {
-        return total;
+    public long getTotalLength() {
+        return totalLength;
     }
 
-    public void setTotal(long total) {
-        this.total = total;
+    public void setTotalLength(long totalLength) {
+        this.totalLength = totalLength;
     }
 
-    public long getProgress() {
-        return progress;
+    public long getSofarBytes() {
+        return sofarBytes;
     }
 
-    public void setProgress(long progress) {
-        this.progress = progress;
+    public void setSofarBytes(long sofarBytes) {
+        this.sofarBytes = sofarBytes;
     }
 
     public String getSavePath() {
@@ -46,5 +72,13 @@ public class DownloadInfo {
 
     public void setSavePath(String savePath) {
         this.savePath = savePath;
+    }
+
+    public String getFileMd5() {
+        return fileMd5;
+    }
+
+    public void setFileMd5(String fileMd5) {
+        this.fileMd5 = fileMd5;
     }
 }

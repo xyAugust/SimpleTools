@@ -1,10 +1,13 @@
-# SimpleTools
+SimpleTools
 简单工具
 
 > 两个单独的lib
+>1. 一键请求权限
+>1. 大文件断点下载
 
-* 一键请求权限
-* 大文件断点下载
+---
+
+> 一键请求权限
 
 ```java
 
@@ -32,35 +35,56 @@
     }
 ```
 
+> 大文件断点下载
+
 ```java
 
-    String downloadUrl = "http://www.voidtools.com/Everything-1.4.1.895.x64-Setup.exe";
-
     public void download(View view) {
-        DownloadManager.getInstance().setSavePath("xyDownload").download(downloadUrl, new DownLoadObserver() {
-            int prePregress;
+        SimpleDownloader simpleDownloader = new SimpleDownloader();
+        String fileName = simpleDownloader.getFileName(downloadUrl);
+        String savePath = Environment.getExternalStorageDirectory().toString() + File.separator + fileName;
+
+        simpleDownloader.download(downloadUrl, savePath, new SimpleDownloadListener() {
+            int preProgress;
 
             @Override
-            public void onNext(DownloadInfo downloadInfo) {
-                super.onNext(downloadInfo);
-                int pro = (int) (downloadInfo.getProgress() * 100 / downloadInfo.getTotal());
-                if (prePregress == pro) {
+            public void onProgress(DownloadInfo task, long sofarBytes) {
+                int progress = (int) (sofarBytes * 100 / task.getTotalLength());
+                if (preProgress == progress) {
                     return;
                 }
-                prePregress = pro;
-                progressBar.setProgress(pro);
-                Log.i(TAG, "onNext: " + pro);
+                preProgress = progress;
+                progressBar.setProgress(progress);
+                ((TextView) view).setText(progress + " %");
+                Log.i(TAG, "onProgress: " + preProgress);
             }
 
             @Override
-            public void onComplete() {
+            public void onComplete(DownloadInfo task) {
                 Log.i(TAG, "onComplete: ");
+            }
+
+            @Override
+            public void onStop(DownloadInfo task, Throwable error) {
+                Log.i(TAG, "onStop: ");
+                if (task.getState() == DownloadInfo.CANCLE) {
+                    // TODO: 2018-12-9 do something
+                } else if (task.getState() == DownloadInfo.PAUSE) {
+                    // TODO: 2018-12-9 do something
+                }
             }
         });
     }
 
 ```
+> * 提供取消和暂停的方法,在回调里面会有对应的状态
 
+```
+        simpleDownloader.cancle();
+        simpleDownloader.pause();
+```
+
+---
 
 > 需要的配置
 
@@ -81,7 +105,7 @@
 	}
 ```
 
-*注意* 使用文件下载的工具  可能还需要如下配置
+**注意** 可能还需要如下配置
 ```gradle
 	android {
             ...

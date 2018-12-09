@@ -2,16 +2,20 @@ package com.xy.examples;
 
 import android.Manifest;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
-import com.xy.filedownloadlib.DownLoadObserver;
 import com.xy.filedownloadlib.DownloadInfo;
-import com.xy.filedownloadlib.DownloadManager;
+import com.xy.filedownloadlib.SimpleDownloadListener;
+import com.xy.filedownloadlib.SimpleDownloader;
 import com.xy.permissionlib.HiPermission;
 import com.xy.permissionlib.PermissionCallback;
+
+import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "examplesMain";
@@ -37,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFinish() {
                 Log.i(TAG, "onFinish: ");
-                // continue work
+                // TODO: 2018-12-9 do something
             }
 
             @Override
@@ -48,27 +52,41 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    String downloadUrl = "http://www.voidtools.com/Everything-1.4.1.895.x64-Setup.exe";
+    String downloadUrl = "http://gdown.baidu.com/data/wisegame/617ea76d7dd3a0ea/jinritoutiao_701.apk";
 
     public void download(View view) {
-        DownloadManager.getInstance().setSavePath("xyDownload").download(downloadUrl, new DownLoadObserver() {
-            int prePregress;
+        SimpleDownloader simpleDownloader = new SimpleDownloader();
+        String fileName = simpleDownloader.getFileName(downloadUrl);
+        String savePath = Environment.getExternalStorageDirectory().toString() + File.separator + fileName;
+
+        simpleDownloader.download(downloadUrl, savePath, new SimpleDownloadListener() {
+            int preProgress;
 
             @Override
-            public void onNext(DownloadInfo downloadInfo) {
-                super.onNext(downloadInfo);
-                int pro = (int) (downloadInfo.getProgress() * 100 / downloadInfo.getTotal());
-                if (prePregress == pro) {
+            public void onProgress(DownloadInfo task, long sofarBytes) {
+                int progress = (int) (sofarBytes * 100 / task.getTotalLength());
+                if (preProgress == progress) {
                     return;
                 }
-                prePregress = pro;
-                progressBar.setProgress(pro);
-                Log.i(TAG, "onNext: " + pro);
+                preProgress = progress;
+                progressBar.setProgress(progress);
+                ((TextView) view).setText(progress + " %");
+                Log.i(TAG, "onProgress: " + preProgress);
             }
 
             @Override
-            public void onComplete() {
+            public void onComplete(DownloadInfo task) {
                 Log.i(TAG, "onComplete: ");
+            }
+
+            @Override
+            public void onStop(DownloadInfo task, Throwable error) {
+                Log.i(TAG, "onStop: ");
+                if (task.getState() == DownloadInfo.CANCLE) {
+                    // TODO: 2018-12-9 do something
+                } else if (task.getState() == DownloadInfo.PAUSE) {
+                    // TODO: 2018-12-9 do something
+                }
             }
         });
     }
