@@ -258,7 +258,7 @@ public class SimpleDownloader {
         if (downloadUrl == null) {
             return "null-" + System.currentTimeMillis();
         }
-        return downloadUrl.substring(downloadUrl.lastIndexOf("/"));
+        return downloadUrl.substring(downloadUrl.lastIndexOf("/") + 1);
     }
 
     private void forceMkdir(File directory) throws IOException {
