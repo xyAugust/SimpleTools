@@ -55,7 +55,6 @@ public class SimpleDownloader {
     }
 
     private OkHttpClient httpClient;
-    private Call loader;
     private Handler handler;
     private static final HashMap<String, DownloadInfo> loaderMap = new HashMap<>(1);
 
@@ -131,8 +130,9 @@ public class SimpleDownloader {
                             .addHeader("Accept-Encoding", "identity")
                             .addHeader("RANGE", "bytes=" + downloadLength + "-" + contentLength) // 续传用 已下载-总长度
                             .url(downloadUrl).build();
-                    loader = httpClient.newCall(request);
+                    Call loader = httpClient.newCall(request);
                     loaderMap.put(downloadUrl, downloadInfo);
+                    downloadInfo.setLoader(loader);
                     Response response = loader.execute();
 
                     is = response.body().byteStream();
@@ -141,7 +141,7 @@ public class SimpleDownloader {
                     int len;
                     while ((len = is.read(buffer)) != -1) {
                         if (SimpleDownloader.this.downloadInfo.getState() == DownloadInfo.CANCLE) {
-                            RuntimeException cancle_task = new RuntimeException("cancle task");
+                            RuntimeException cancle_task = new RuntimeException("stop task");
                             SimpleDownloader.this.downloadInfo.setError(cancle_task);
                             loaderMap.remove(downloadUrl);
                             throw new RuntimeException(cancle_task);
@@ -235,21 +235,25 @@ public class SimpleDownloader {
         return DownloadInfo.TOTAL_ERROR;
     }
 
-    public void cancle() {
-        if (loader != null) {
-            loader.cancel();
-        }
+    public void cancle(String url) {
+        DownloadInfo downloadInfo = loaderMap.get(url);
         if (downloadInfo != null) {
             downloadInfo.setState(DownloadInfo.CANCLE);
+            Call loader = downloadInfo.getLoader();
+            if (loader != null) {
+                loader.cancel();
+            }
         }
     }
 
-    public void pause() {
-        if (loader != null) {
-            loader.cancel();
-        }
+    public void pause(String url) {
+        DownloadInfo downloadInfo = loaderMap.get(url);
         if (downloadInfo != null) {
             downloadInfo.setState(DownloadInfo.PAUSE);
+            Call loader = downloadInfo.getLoader();
+            if (loader != null) {
+                loader.cancel();
+            }
         }
     }
 

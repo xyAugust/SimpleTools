@@ -1,5 +1,7 @@
 package com.xy.filedownloadlib;
 
+import okhttp3.Call;
+
 public class DownloadInfo {
     public static final int START = 0x01;
     public static final int LOADING = 0x02;
@@ -16,7 +18,12 @@ public class DownloadInfo {
     private String fileMd5;
     private String savePath;
     private int state;
+    private Call loader;
     private Throwable error;
+
+    public DownloadInfo(String url) {
+        this.url = url;
+    }
 
     public int getState() {
         return state;
@@ -32,10 +39,6 @@ public class DownloadInfo {
 
     public void setError(Throwable error) {
         this.error = error;
-    }
-
-    public DownloadInfo(String url) {
-        this.url = url;
     }
 
     public String getUrl() {
@@ -80,5 +83,13 @@ public class DownloadInfo {
 
     public void setFileMd5(String fileMd5) {
         this.fileMd5 = fileMd5;
+    }
+
+    public Call getLoader() {
+        return loader;
+    }
+
+    public void setLoader(Call loader) {
+        this.loader = loader;
     }
 }
