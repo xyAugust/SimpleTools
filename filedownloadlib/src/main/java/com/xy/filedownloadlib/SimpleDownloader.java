@@ -1,7 +1,7 @@
 package com.xy.filedownloadlib;
 
 import android.os.Handler;
-import android.os.Message;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
@@ -63,7 +63,7 @@ public class SimpleDownloader {
                 .connectTimeout(5, TimeUnit.SECONDS)
                 .readTimeout(5, TimeUnit.SECONDS)
                 .build();
-        handler = new Handler(callback);
+        handler = new Handler(Looper.getMainLooper());
     }
 
     private DownloadInfo downloadInfo;
@@ -85,6 +85,12 @@ public class SimpleDownloader {
         return this;
     }
 
+    private boolean isBackground; // 是否后台下载
+
+    public void setBackground(boolean isBackground) {
+        this.isBackground = isBackground;
+    }
+
     public void download(String url, String savePath, SimpleDownloadListener listener) {
         download(url, savePath, -1, listener);
     }
@@ -101,7 +107,6 @@ public class SimpleDownloader {
     }
 
     public void download() {
-
         THREAD_POOL_EXECUTOR.execute(new Runnable() {
             @Override
             public void run() {
@@ -109,17 +114,17 @@ public class SimpleDownloader {
                 FileOutputStream fileOutputStream = null;
                 String downloadUrl = downloadInfo.getUrl();
                 try {
-                    SimpleDownloader.this.downloadInfo.setState(DownloadInfo.START);      // 开始
-                    post(DownloadInfo.START, SimpleDownloader.this.downloadInfo);
+                    downloadInfo.setState(DownloadInfo.START);      // 开始
+                    post(DownloadInfo.START, downloadInfo);
                     long downloadLength = 0;
                     OkHttpClient httpClient = new OkHttpClient.Builder()
                             .build();
                     long contentLength = getContentLength(downloadUrl);
-                    if (SimpleDownloader.this.downloadInfo.getTotalLength() < 0) {
-                        SimpleDownloader.this.downloadInfo.setTotalLength(contentLength);
+                    if (downloadInfo.getTotalLength() < 0) {
+                        downloadInfo.setTotalLength(contentLength);
                     }
 
-                    String savePath = SimpleDownloader.this.downloadInfo.getSavePath();
+                    String savePath = downloadInfo.getSavePath();
                     File loacalFile = new File(savePath);
                     if (loacalFile.exists()) {
                         downloadLength = loacalFile.length();
@@ -140,22 +145,22 @@ public class SimpleDownloader {
                     byte[] buffer = new byte[1024 * 2];
                     int len;
                     while ((len = is.read(buffer)) != -1) {
-                        if (SimpleDownloader.this.downloadInfo.getState() == DownloadInfo.CANCLE) {
+                        if (downloadInfo.getState() == DownloadInfo.CANCLE) {
                             RuntimeException cancle_task = new RuntimeException("stop task");
-                            SimpleDownloader.this.downloadInfo.setError(cancle_task);
+                            downloadInfo.setError(cancle_task);
                             loaderMap.remove(downloadUrl);
                             throw new RuntimeException(cancle_task);
                         }
                         fileOutputStream.write(buffer, 0, len);
                         downloadLength += len;
-                        SimpleDownloader.this.downloadInfo.setState(DownloadInfo.LOADING);        // 下载中
-                        SimpleDownloader.this.downloadInfo.setSofarBytes(downloadLength);
-                        post(DownloadInfo.LOADING, SimpleDownloader.this.downloadInfo);
+                        downloadInfo.setState(DownloadInfo.LOADING);        // 下载中
+                        downloadInfo.setSofarBytes(downloadLength);
+                        post(DownloadInfo.LOADING, downloadInfo);
                     }
                     fileOutputStream.flush();
 
-                    SimpleDownloader.this.downloadInfo.setState(DownloadInfo.COMPLETE);           // 完成
-                    post(DownloadInfo.COMPLETE, SimpleDownloader.this.downloadInfo);
+                    downloadInfo.setState(DownloadInfo.COMPLETE);           // 完成
+                    post(DownloadInfo.COMPLETE, downloadInfo);
                     loaderMap.remove(downloadUrl);
                 } catch (Exception e) {
                     e.printStackTrace();            //  出错
@@ -163,8 +168,8 @@ public class SimpleDownloader {
                         new File(downloadInfo.getSavePath()).delete();
                     }
                     loaderMap.remove(downloadUrl);
-                    SimpleDownloader.this.downloadInfo.setError(e);
-                    post(DownloadInfo.STOP, SimpleDownloader.this.downloadInfo);
+                    downloadInfo.setError(e);
+                    post(DownloadInfo.STOP, downloadInfo);
                 } finally {
                     closeAll(is, fileOutputStream);
                 }
@@ -173,37 +178,39 @@ public class SimpleDownloader {
     }
 
     private void post(int state, DownloadInfo downloadInfo) {
-        Message message = handler.obtainMessage();
-        message.what = state;
-        message.obj = downloadInfo;
-        handler.sendMessage(message);
+        if (isBackground) {
+            callback(state, downloadInfo);
+            return;
+        }
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                callback(state, downloadInfo);
+            }
+        });
     }
 
-    Handler.Callback callback = new Handler.Callback() {
-        @Override
-        public boolean handleMessage(Message msg) {
-            if (listener == null) {
-                return true;
-            }
-            DownloadInfo downloadInfo = (DownloadInfo) msg.obj;
-            switch (msg.what) {
-                case DownloadInfo.START:
-                    listener.onStart(downloadInfo);
-                    break;
-                case DownloadInfo.LOADING:
-                    listener.onProgress(downloadInfo, downloadInfo.getSofarBytes());
-                    break;
-                case DownloadInfo.COMPLETE:
-                    listener.onComplete(downloadInfo);
-                    break;
-                case DownloadInfo.STOP:
-                    listener.onStop(downloadInfo, downloadInfo.getError());
-                    break;
-
-            }
-            return true;
+    private void callback(int state, DownloadInfo downloadInfo) {
+        if (listener == null) {
+            return;
         }
-    };
+        switch (state) {
+            case DownloadInfo.START:
+                listener.onStart(downloadInfo);
+                break;
+            case DownloadInfo.LOADING:
+                listener.onProgress(downloadInfo, downloadInfo.getSofarBytes());
+                break;
+            case DownloadInfo.COMPLETE:
+                listener.onComplete(downloadInfo);
+                break;
+            case DownloadInfo.STOP:
+                listener.onStop(downloadInfo, downloadInfo.getError());
+                break;
+            default:
+                break;
+        }
+    }
 
     public void closeAll(InputStream is, OutputStream os) {
         try {
