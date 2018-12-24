@@ -102,7 +102,7 @@ SimpleTools
 * 在module gradle
 ```gradle
 	dependencies {
-	        implementation 'com.github.xyAugust:SimpleTools:Tag'
+	        implementation 'com.github.xyAugust:SimpleTools:v0.22'
 	}
 ```
 
