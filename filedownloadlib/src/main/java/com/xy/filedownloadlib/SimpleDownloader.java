@@ -76,6 +76,7 @@ public class SimpleDownloader {
     private SimpleDownloader createTask(String url, String savePath, long fileLength) {
         downloadInfo = new DownloadInfo(url);
         downloadInfo.setSavePath(savePath);
+        downloadInfo.setFileName(url.substring(url.lastIndexOf("/") + 1));
         downloadInfo.setTotalLength(fileLength);
         return this;
     }
