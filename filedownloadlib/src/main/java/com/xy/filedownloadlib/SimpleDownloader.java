@@ -73,6 +73,10 @@ public class SimpleDownloader {
         return downloadInfo;
     }
 
+    public DownloadInfo getDownloadInfo(String url) {
+        return loaderMap.get(url);
+    }
+
     private SimpleDownloader createTask(String url, String savePath, long fileLength) {
         downloadInfo = new DownloadInfo(url);
         downloadInfo.setSavePath(savePath);
