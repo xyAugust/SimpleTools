@@ -62,6 +62,7 @@ public class SimpleDownloader {
         httpClient = new OkHttpClient.Builder()
                 .connectTimeout(5, TimeUnit.SECONDS)
                 .readTimeout(5, TimeUnit.SECONDS)
+                .writeTimeout(5, TimeUnit.SECONDS)
                 .build();
         handler = new Handler(Looper.getMainLooper());
     }
