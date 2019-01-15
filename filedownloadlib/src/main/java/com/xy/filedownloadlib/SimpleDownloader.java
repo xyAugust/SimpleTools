@@ -123,8 +123,6 @@ public class SimpleDownloader {
                     downloadInfo.setState(DownloadInfo.START);      // 开始
                     post(DownloadInfo.START, downloadInfo);
                     long downloadLength = 0;
-                    OkHttpClient httpClient = new OkHttpClient.Builder()
-                            .build();
                     long contentLength = getContentLength(downloadUrl);
                     if (downloadInfo.getTotalLength() < 0) {
                         downloadInfo.setTotalLength(contentLength);
@@ -296,4 +294,5 @@ public class SimpleDownloader {
             }
         }
     }
+
 }
